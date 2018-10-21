@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.6
 
 RUN mkdir /app && cd /app && git clone https://github.com/stefan-urban/flathunter.git
 RUN pip install --no-cache-dir -r /app/flathunter/requirements.txt
