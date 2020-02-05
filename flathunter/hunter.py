@@ -11,6 +11,7 @@ class Hunter:
     GM_MODE_TRANSIT = 'transit'
     GM_MODE_BICYCLE = 'bicycling'
     GM_MODE_DRIVING = 'driving'
+    GM_NO_KEY = 'YOUR_API_KEY'
 
     def hunt_flats(self, config, searchers, id_watch):
         sender = SenderTelegram(config)
@@ -95,7 +96,7 @@ class Hunter:
         base_url = config.get('google_maps_api',dict()).get('url')
         gm_key = config.get('google_maps_api',dict()).get('key')
 
-        if not gm_key and mode != self.GM_MODE_DRIVING:
+        if (not gm_key or self.GM_NO_KEY )  and mode != self.GM_MODE_DRIVING:
             self.__log__.warning("No Google Maps API key configured and without using a mode different from "
                                     "'driving' is not allowed. Downgrading to mode 'drinving' thus. ")
             mode = 'driving'
@@ -105,7 +106,7 @@ class Hunter:
         url = base_url.format(dest=dest, mode=mode, origin=address, key=gm_key, arrival=arrival_time)
         result = requests.get(url).json()
         if result['status'] != 'OK':
-            self.__log__.error("Failed retrieving distance to address %s: " % address, result)
+            self.__log__.error("Failed retrieving distance to address %s: " % str(address), str(result))
             return None
 
         # get the fastest route
@@ -116,10 +117,10 @@ class Hunter:
                     self.__log__.warning("For address %s we got the status message: %s" % (address,element['status']))
                     self.__log__.debug("We got this result: %s" % repr(result))
                     continue
-                    self.__log__.debug("Got distance and duration: %s / %s (%i seconds)"
-                                       % (element['distance']['text'], element['duration']['text'],
-                                          element['duration']['value'])
-                                       )
+                self.__log__.debug("Got distance and duration: %s / %s (%i seconds)"
+                                   % (element['distance']['text'], element['duration']['text'],
+                                      element['duration']['value'])
+                                   )
                 distances[element['duration']['value']] = '%s (%s)' % \
                                                           (element['duration']['text'], element['distance']['text'])
         return distances[min(distances.keys())] if distances else None
