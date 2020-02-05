@@ -5,9 +5,9 @@ COPY requirements.txt /crawler/
 WORKDIR /crawler
 RUN pip install -r requirements.txt
 
-COPY config.yaml   /crawler/config.yaml
-COPY flathunter    /crawler/flathunter 
-COPY flathunter.py /crawler/flathunter.py
+COPY config.yaml.dist   /crawler/config.yaml
+COPY flathunter         /crawler/flathunter 
+COPY flathunter.py      /crawler/flathunter.py
 
 ENTRYPOINT python flathunter.py || echo Fooooooooooooooooo
 
