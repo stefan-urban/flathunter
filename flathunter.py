@@ -23,11 +23,11 @@ if os.name == 'posix':
     cyellow = '\033[93m'
     cblue = '\033[94m'
     coff = '\033[0m'
-    format = '[' + cblue + '%(asctime)s' + coff + '|' + cblue + '%(filename)-18s' + coff + '|' + cyellow + \
-             '%(levelname)-8s' + coff + ']: %(message)s'
+    format = '[' + cblue + '%(asctime)s' + coff + '|' + cyellow + '%(levelname)-4s' + coff + ']: %(message)s'
+             
 else:
     # else without color
-    format = '[%(asctime)s|%(filename)-18s|%(levelname)-8s]: %(message)s'
+    format = '[%(asctime)s|%(levelname)-4s]: %(message)s'
 logging.basicConfig(
     format=format,
     datefmt="%Y/%m/%d %H:%M:%S",
@@ -62,7 +62,7 @@ def main():
     # load config
     config_handle = args.config
     __log__.info("Using config %s" % config_handle.name)
-    config = yaml.load(config_handle.read())
+    config = yaml.load(config_handle.read(), Loader=yaml.FullLoader)
 
     # check config
     if not config.get('telegram', dict()).get('bot_token'):
