@@ -11,10 +11,10 @@ class CrawlImmobilienscout:
 
     def get_results(self, search_url):
         # convert to paged URL
-        if '/P-' in search_url:
-            search_url = re.sub(r"/Suche/(.+?)/P-\d+", "/Suche/\1/P-%i", search_url)
+        if '?' in search_url:
+            search_url += '&pagenumber=[page_no]'
         else:
-            search_url = re.sub(r"/Suche/(.+?)/", r"/Suche/\1/P-%i/", search_url)
+            search_url += '?pagenumber=[page_no]'
         self.__log__.debug("Got search URL %s" % search_url)
 
         # load first page to get number of entries
