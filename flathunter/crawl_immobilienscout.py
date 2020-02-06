@@ -10,37 +10,50 @@ class CrawlImmobilienscout:
         logging.getLogger("requests").setLevel(logging.WARNING)
 
     def get_results(self, search_url):
+
         # convert to paged URL
         if '?' in search_url:
-            search_url += '&pagenumber=[page_no]'
+            search_url += '&pagenumber=[pageno]'
         else:
-            search_url += '?pagenumber=[page_no]'
+            search_url += '?pagenumber=[pageno]'
         self.__log__.debug("Got search URL %s" % search_url)
-
+        
         # load first page to get number of entries
         page_no = 1
         soup = self.get_page(search_url, page_no)
-        no_of_results = int(
-            soup.find_all(lambda e: e.has_attr('data-is24-qa') and e['data-is24-qa'] == 'resultlist-resultCount')[
-                0].text)
+        
+        no_of_results_str = soup.find_all(lambda e: e.has_attr('data-is24-qa') and e['data-is24-qa'] == 'resultlist-resultCount')[0].text;
+        no_of_results = int(no_of_results_str.strip().replace('.', ''))
         self.__log__.info('Number of results: ' + str(no_of_results))
 
         # get data from first page
         entries = self.extract_data(soup)
 
         # iterate over all remaining pages
-        while len(entries) < no_of_results:
+        num_empty_pages = 0
+        num_entries = len(entries)
+        while num_entries < no_of_results and num_empty_pages < 5:
             self.__log__.debug('Next Page')
             page_no += 1
             soup = self.get_page(search_url, page_no)
-            entries.extend(self.extract_data(soup))
+            new_entries = self.extract_data(soup)
+            num_entries += len(new_entries)
+
+            if new_entries == 0:
+                num_empty_pages += 1
+
+            entries.extend(new_entries)
 
         return entries
 
     def get_page(self, search_url, page_no):
-        resp = requests.get(search_url % page_no)
+        url = search_url.replace("[pageno]", str(page_no), 1)
+        return self.get_generic_page(url)
+
+    def get_generic_page(self, url):
+        resp = requests.get(url)
         if resp.status_code != 200:
-            self.__log__.error("Got response (%i): %s" % (resp.status_code, resp.content))
+            self.__log__.error("Got response (%i): %s" % (resp.status_code, resp.content[0:100]))
         return BeautifulSoup(resp.content, 'html.parser')
 
     def extract_data(self, soup):
